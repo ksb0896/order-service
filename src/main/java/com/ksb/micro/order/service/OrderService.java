@@ -1,5 +1,6 @@
 package com.ksb.micro.order.service;
 
+import com.ksb.micro.order.client.InventoryClient;
 import com.ksb.micro.order.dto.OrderRequest;
 import com.ksb.micro.order.model.Order;
 import com.ksb.micro.order.repository.OrderRepository;
@@ -13,22 +14,28 @@ import java.util.UUID;
 /*@RequiredArgsConstructor*/
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final InventoryClient inventoryClient;
 
     //Manually addition of constructor
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, InventoryClient inventoryClient) {
         this.orderRepository = orderRepository;
+        this.inventoryClient = inventoryClient;
     }
 
     public void placeOrder(OrderRequest orderRequest){
-    //map orderRequest to order object
-    Order order = new Order();
-    order.setOrderNumber(UUID.randomUUID().toString());
-    order.setPrice(orderRequest.price());
-    order.setSkuCode(orderRequest.skuCode());
-    order.setQuantity(orderRequest.quantity());
+        var isProductInStock = inventoryClient.isInStock(orderRequest.skuCode(), orderRequest.quantity());
+        if(isProductInStock){
+            //map orderRequest to order object
+            Order order = new Order();
+            order.setOrderNumber(UUID.randomUUID().toString());
+            order.setPrice(orderRequest.price());
+            order.setSkuCode(orderRequest.skuCode());
+            order.setQuantity(orderRequest.quantity());
 
-    //save order to orderRepository
-    orderRepository.save(order);
-
+            //save order to orderRepository
+            orderRepository.save(order);
+        }else {
+            throw new RuntimeException("Product with SkuCode " + orderRequest.skuCode() + " is not in stock");
+        }
 }
 }
