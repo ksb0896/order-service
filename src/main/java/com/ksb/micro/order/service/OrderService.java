@@ -10,10 +10,16 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
+/*@RequiredArgsConstructor*/
 public class OrderService {
     private final OrderRepository orderRepository;
-public void placeOrder(OrderRequest orderRequest){
+
+    //Manually addition of constructor
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    public void placeOrder(OrderRequest orderRequest){
     //map orderRequest to order object
     Order order = new Order();
     order.setOrderNumber(UUID.randomUUID().toString());
